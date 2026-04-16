@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5" style="max-width: 500px;">
+  <h2 class="mb-4 text-center">Register</h2>
+
+  {% if error %}
+  <div class="alert alert-danger">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label">Full Name</label>
+      <input type="text" name="full_name" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Phone Number</label>
+      <input type="text" name="phone" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Shop Name</label>
+      <input type="text" name="shop_name" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">GST Number (optional)</label>
+      <input type="text" name="gst_number" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Confirm Password</label>
+      <input type="password" name="confirm_password" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Create Account</button>
+
+    <p class="mt-3 text-center">
+      Already have an account?
+      <a href="/login">Login here</a>
+    </p>
+  </form>
+</div>
+
+{% endblock %}

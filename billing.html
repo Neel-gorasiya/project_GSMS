@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">🏪 Dashboard</h2>
+    <span class="text-muted small bg-white px-3 py-2 rounded-pill border">📅 Today: {{ now().strftime('%d %b %Y') }}</span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4">
+
+    <!-- Today's Sales -->
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2">💰 Today's Sales</div>
+          <div class="display-5 fw-bold text-success mb-2">
+            ₹{{ '%.2f'|format(today_sales or 0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Outstanding -->
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2">📊 Total Outstanding</div>
+          <div class="display-5 fw-bold text-warning mb-2">
+            ₹{{ '%.2f'|format(total_outstanding or 0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bills Today -->
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2">📄 Bills Today</div>
+          <div class="display-5 fw-bold text-primary mb-3">
+            {{ bills_today or 0 }}
+          </div>
+          <a href="/bills/today" class="btn btn-primary btn-sm px-4">
+            📋 View Bills
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Section -->
+  <div class="row g-3">
+
+    <!-- Low Stock -->
+    <div class="col-md-8">
+      <div class="stat-card h-100">
+        <div class="card-body">
+          <h5 class="card-title mb-3">⚠️ Low Stock Alert</h5>
+
+          {% if low_stock %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>📦 Product</th>
+                  <th class="text-end">📊 Stock</th>
+                  <th>🏷️ Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in low_stock %}
+                <tr class="table-warning">
+                  <td class="fw-semibold text-danger">🚨 {{ p.name }}</td>
+                  <td class="text-end fw-bold">{{ p.stock }}</td>
+                  <td>{{ p.unit }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <div class="text-success" style="font-size: 48px;">✅</div>
+            <p class="text-muted mb-0 fw-semibold">All products well stocked!</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+      <div class="stat-card h-100">
+        <div class="card-body">
+          <h5 class="card-title mb-3">⚡ Quick Actions</h5>
+          <div class="d-grid gap-3">
+            <a href="/billing" class="btn btn-primary btn-lg">
+              🧾 Create New Bill
+            </a>
+            <a href="/bills/history" class="btn btn-info">
+              📅 Bills History (Last Month)
+            </a>
+            <a href="/products" class="btn btn-success">
+              ➕ Add Product
+            </a>
+            <a href="/customers" class="btn btn-warning">
+              👥 Manage Customers
+            </a>
+            <a href="/stock" class="btn btn-info">
+              📈 View Stock
+            </a>
+            <a href="/daily-report" class="btn btn-secondary">
+              📊 Daily Report
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4">Edit Product</h2>
+
+<form method="post" class="w-50 mx-auto">
+
+  <div class="mb-3">
+    <label>Name</label>
+    <input type="text" name="name" class="form-control" required value="{{ product.name }}">
+  </div>
+
+  <div class="mb-3">
+    <label>Cost Price</label>
+    <input type="number" name="cost_price" step="0.01" class="form-control" required value="{{ product.cost_price }}">
+  </div>
+
+  <div class="mb-3">
+    <label>Selling Price</label>
+    <input type="number" name="sell_price" step="0.01" class="form-control" required value="{{ product.sell_price }}">
+  </div>
+
+  <div class="mb-3">
+  <label class="form-label">Unit</label>
+  <select name="unit" class="form-select" required>
+    <option value="kg" {% if product.unit == "kg" %}selected{% endif %}>kg</option>
+    <option value="g" {% if product.unit == "g" %}selected{% endif %}>gram</option>
+    <option value="L" {% if product.unit == "L" %}selected{% endif %}>litre</option>
+    <option value="ml" {% if product.unit == "ml" %}selected{% endif %}>millilitre</option>
+    <option value="pcs" {% if product.unit == "pcs" %}selected{% endif %}>pcs</option>
+    <option value="pack" {% if product.unit == "pack" %}selected{% endif %}>pack</option>
+    <option value="box" {% if product.unit == "box" %}selected{% endif %}>box</option>
+  </select>
+</div>
+
+  <div class="mb-3">
+    <label>Stock</label>
+    <input type="number" name="stock" class="form-control" required value="{{ product.stock }}">
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+
+</form>
+
+{% endblock %}

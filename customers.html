@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4" id="invoice-area">
+  <!-- Header -->
+ 
+
+<div class="container mt-4">
+
+  <!-- SHOP HEADER -->
+  <div class="mb-4">
+    {% if owner %}
+      <h3 class="mb-1">{{ owner.shop_name or "Your Shop Name" }}</h3>
+
+      {% if owner.gst_number %}
+        <p class="mb-0">GSTIN: {{ owner.gst_number }}</p>
+      {% endif %}
+
+      {% if owner.full_name or owner.phone %}
+        <p class="mb-0">
+          {% if owner.full_name %}Owner: {{ owner.full_name }}{% endif %}
+          {% if owner.phone %} | Phone: {{ owner.phone }}{% endif %}
+        </p>
+      {% endif %}
+    {% else %}
+      <h3>Your Shop</h3>
+    {% endif %}
+  </div>
+
+  <!-- REST OF YOUR INVOICE LAYOUT -->
+  <!-- Example: Bill info, customer info, items table, totals, print button etc -->
+
+</div>
+
+
+
+  <hr>
+
+  <!-- Customer & Payment Info -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <h5>Customer</h5>
+      {% if customer %}
+        <p class="mb-0">{{ customer.name }}</p>
+      {% else %}
+        <p class="mb-0">Walk-in / Cash Customer</p>
+      {% endif %}
+    </div>
+
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+      <h5>Payment</h5>
+      <p class="mb-0">
+        <strong>Type:</strong>
+        {% if bill.payment_type == 'cash' %}
+          Cash (Paid)
+        {% elif bill.payment_type == 'online' %}
+          Online (Paid)
+        {% else %}
+          Credit (Udhar)
+        {% endif %}
+      </p>
+      {% if bill.payment_type == 'credit' and bill.due_date %}
+        <p class="mb-0"><strong>Due Date:</strong> {{ bill.due_date }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Items Table -->
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Unit</th>
+        <th>Price / Unit</th>
+        <th>Line Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.unit }}</td>
+        <td>{{ "%.2f"|format(item.price) }}</td>
+        <td>{{ "%.2f"|format(item.line_total) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Total -->
+  <div class="text-end mt-3">
+    <h4>Total: ₹ {{ "%.2f"|format(bill.total) }}</h4>
+  </div>
+
+  <!-- Print Button -->
+  <div class="mt-4 no-print">
+    <button class="btn btn-primary" onclick="window.print()">Print Bill</button>
+    <a href="/billing" class="btn btn-secondary">Back to Billing</a>
+  </div>
+</div>
+
+<!-- Hide navbar/print button when printing -->
+<style>
+  @media print {
+    .navbar,
+    .no-print {
+      display: none !important;
+    }
+    #invoice-area {
+      margin-top: 0;
+    }
+  }
+</style>
+
+{% endblock %}

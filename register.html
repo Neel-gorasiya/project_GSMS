@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Page Header -->
+  <div class="p-4 rounded-3 shadow-sm mb-4 text-white"
+       style="background: linear-gradient(135deg, #6a11cb, #2575fc);">
+    <h2 class="mb-0">Customers</h2>
+    <p class="mb-0 opacity-75">Manage customer records and pending dues</p>
+  </div>
+
+  <div class="row">
+    <!-- Add Customer Form -->
+    <div class="col-md-4">
+      <div class="card shadow-sm mb-4 border-0" style="border-radius: 12px;">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Add New Customer</h5>
+
+          <!-- ✅ FORM UPDATED -->
+          <form method="post" onsubmit="return validateMobile()">
+            <div class="mb-3">
+              <input type="text" name="name" class="form-control"
+                     placeholder="Enter Customer Name" required>
+            </div>
+
+            <!-- ✅ NEW MOBILE FIELD -->
+            <div class="mb-3">
+              <input type="text" name="mobile_number" class="form-control"
+                     placeholder="Enter Mobile Number"
+                     pattern="[0-9]{10}"
+                     maxlength="10"
+                     required>
+            </div>
+
+            <button type="submit"
+                    class="btn w-100 text-white"
+                    style="background: #ff7f50;">
+              Add Customer
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer List -->
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0" style="border-radius: 12px;">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Customer List</h5>
+
+          {% if customers %}
+          <table class="table table-hover align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>Name</th>
+                <th>Mobile</th> <!-- ✅ NEW COLUMN -->
+                <th>Due Amount</th>
+                <th>Payment Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in customers %}
+              <tr>
+                <td>{{ c.name }}</td>
+
+                <!-- ✅ SHOW MOBILE -->
+                <td>{{ c.mobile_number or '-' }}</td>
+
+                <td>
+                  <span class="badge {% if c.due > 0 %}bg-danger{% else %}bg-success{% endif %} px-3 py-2">
+                    ₹ {{ '%.2f'|format(c.due) }}
+                  </span>
+                </td>
+                <td>
+                  <!-- Partial payment form -->
+                  <form method="post"
+                        action="/customers/{{ c.id }}/pay"
+                        class="d-flex mb-1">
+                    <input type="number"
+                           step="0.01"
+                           min="0"
+                           max="{{ c.due }}"
+                           name="amount"
+                           class="form-control form-control-sm me-2"
+                           placeholder="Amount"
+                           {% if c.due <= 0 %}disabled{% endif %}>
+                    <button class="btn btn-sm btn-success"
+                            {% if c.due <= 0 %}disabled{% endif %}>
+                      Pay
+                    </button>
+                  </form>
+
+                  <!-- Full paid button -->
+                  <form method="post"
+                        action="/customers/{{ c.id }}/pay_full"
+                        style="display:inline;">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            {% if c.due <= 0 %}disabled{% endif %}>
+                      Full Paid
+                    </button>
+                  </form>
+
+                  <form method="post" action="/customers/{{ c.id }}/delete" style="display:inline;">
+                    <button class="btn btn-sm btn-danger"
+                            onclick="return confirm('Delete this customer?');">
+                      Delete
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% else %}
+          <div class="text-center text-muted py-4">
+            <p class="mt-2">No customers added yet.</p>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ✅ JS VALIDATION -->
+<script>
+function validateMobile() {
+    let mobile = document.querySelector('[name="mobile_number"]').value;
+    if (!/^[0-9]{10}$/.test(mobile)) {
+        alert("Enter valid 10-digit mobile number");
+        return false;
+    }
+    return true;
+}
+</script>
+
+{% endblock %}

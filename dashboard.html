@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Today's Bills</h3>
+    <div>
+      <a href="/daily-report" class="btn btn-sm btn-success me-2">📊 Daily Report</a>
+      <a href="/dashboard" class="btn btn-sm btn-outline-secondary">Back</a>
+    </div>
+  </div>
+
+  {% if bills %}
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bills %}
+          <tr>
+            <td>{{ b.id }}</td>
+            <td>₹ {{ '%.2f'|format(b.total) }}</td>
+            <td>{{ b.payment_type|capitalize }}</td>
+            <td>{{ b.created_at[11:16] }}</td>
+            <td>
+              <a href="/billing/{{ b.id }}" class="btn btn-sm btn-primary">
+                View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+    <p class="text-muted">No bills created today.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

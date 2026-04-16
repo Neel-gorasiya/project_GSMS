@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Bills History - Last Month</h2>
+    <div>
+      <a href="/dashboard" class="btn btn-sm btn-outline-secondary">← Back</a>
+    </div>
+  </div>
+
+  <!-- Date Picker Card -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row align-items-end g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Select Date</label>
+          <input 
+            type="date" 
+            id="datePicker" 
+            class="form-control form-control-lg"
+            value="{{ selected_date }}"
+            min="{{ month_ago }}"
+            max="{{ today }}"
+          >
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small">Available dates with bills:</label>
+          <div class="d-flex flex-wrap gap-2" id="dateButtons">
+            {% if available_dates %}
+              {% for date in available_dates[:10] %}
+                <button 
+                  type="button" 
+                  class="btn btn-sm {% if date == selected_date %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                  onclick="selectDate('{{ date }}')"
+                >
+                  {{ date }}
+                </button>
+              {% endfor %}
+              {% if available_dates|length > 10 %}
+                <span class="text-muted align-self-center">+{{ available_dates|length - 10 }} more</span>
+              {% endif %}
+            {% else %}
+              <p class="text-muted mb-0">No bills available</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Card -->
+  {% if stats and stats['total_bills'] > 0 %}
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light">
+        <div class="card-body">
+          <div class="text-muted small mb-1">Total Bills</div>
+          <div class="fs-3 fw-bold text-primary">{{ stats['total_bills'] }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light">
+        <div class="card-body">
+          <div class="text-muted small mb-1">Total Sales</div>
+          <div class="fs-3 fw-bold text-success">₹ {{ '%.2f'|format(stats['total_sales']) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light">
+        <div class="card-body">
+          <div class="text-muted small mb-1">Cash</div>
+          <div class="fs-5 fw-bold text-info">₹ {{ '%.2f'|format(stats['cash_sales']) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm bg-light">
+        <div class="card-body">
+          <div class="text-muted small mb-1">Credit</div>
+          <div class="fs-5 fw-bold text-warning">₹ {{ '%.2f'|format(stats['credit_sales']) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Bills Table -->
+  {% if bills %}
+  <div class="card shadow-sm">
+    <div class="card-header bg-light py-3">
+      <h5 class="mb-0">Bills on {{ selected_date }}</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width: 60px">#</th>
+              <th>Customer</th>
+              <th>Payment Type</th>
+              <th class="text-end">Amount</th>
+              <th class="text-center">Time</th>
+              <th class="text-center" style="width: 80px">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bill in bills %}
+            <tr>
+              <td class="text-center fw-bold">{{ bill.id }}</td>
+              <td>{{ bill.customer_name }}</td>
+              <td>
+                {% if bill.payment_type == 'cash' %}
+                  <span class="badge bg-info">Cash</span>
+                {% elif bill.payment_type == 'online' %}
+                  <span class="badge bg-success">Online</span>
+                {% elif bill.payment_type == 'credit' %}
+                  <span class="badge bg-warning text-dark">Credit</span>
+                {% endif %}
+              </td>
+              <td class="text-end fw-semibold">₹ {{ '%.2f'|format(bill.total) }}</td>
+              <td class="text-center text-muted small">{{ bill.created_at[11:16] }}</td>
+              <td class="text-center">
+                <a href="/billing/{{ bill.id }}" class="btn btn-sm btn-primary" title="View Invoice">
+                  👁️
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info text-center py-5">
+    <h5>No Bills Found</h5>
+    <p class="mb-0 text-muted">No bills created on <strong>{{ selected_date }}</strong></p>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+  document.getElementById('datePicker').addEventListener('change', function() {
+    window.location.href = '/bills/history?date=' + this.value;
+  });
+
+  function selectDate(date) {
+    window.location.href = '/bills/history?date=' + date;
+  }
+</script>
+
+<style>
+  .btn-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+</style>
+
+{% endblock %}

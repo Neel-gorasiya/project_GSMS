@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid mt-4">
+  
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0"><span class="emoji-icon">📦</span> Stock & Investment Overview</h2>
+    <a href="/dashboard" class="btn btn-sm btn-outline-secondary">← Back</a>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2"><span class="emoji-icon">📦</span> Total Products</div>
+          <div class="display-5 fw-bold text-primary">{{ products|length }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2"><span class="emoji-icon">💰</span> Total Investment</div>
+          <div class="display-6 fw-bold text-success">₹ {{ "%.2f"|format(total_invested) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2"><span class="emoji-icon">📊</span> Avg Stock Value</div>
+          <div class="display-6 fw-bold text-info">₹ {{ "%.2f"|format(total_invested / products|length if products else 0) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-2"><span class="emoji-icon">⚠️</span> Low Stock Alert</div>
+          <div class="display-6 fw-bold text-warning">{{ products|selectattr('stock', 'le', 10)|list|length }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  {% if products %}
+  <div class="row g-3 mb-4">
+    <!-- Stock Level Bar Chart -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light py-3">
+          <h5 class="mb-0">📊 Stock Levels by Product</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="stockChart" style="max-height: 350px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investment Distribution Pie Chart -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light py-3">
+          <h5 class="mb-0">💵 Investment Distribution</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="investmentChart" style="max-height: 350px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Table View -->
+  {% if products %}
+  <div class="card shadow-sm">
+    <div class="card-header bg-light py-3">
+      <h5 class="mb-0">📋 Detailed Stock Information</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Product Name</th>
+              <th class="text-end">Cost Price</th>
+              <th style="text-align: center;">Stock</th>
+              <th>Unit</th>
+              <th class="text-end">Invested Amount</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            <tr>
+              <td>
+                <span class="fw-semibold">{{ p.name }}</span>
+              </td>
+              <td class="text-end">₹ {{ "%.2f"|format(p.cost_price) }}</td>
+              <td style="text-align: center;">
+                <span class="badge {% if p.stock <= 5 %}bg-danger{% elif p.stock <= 10 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                  {{ p.stock }}
+                </span>
+              </td>
+              <td>{{ p.unit }}</td>
+              <td class="text-end fw-semibold">₹ {{ "%.2f"|format(p.invested) }}</td>
+              <td class="text-center">
+                {% if p.stock <= 5 %}
+                  <span class="badge bg-danger">🚨 Critical</span>
+                {% elif p.stock <= 10 %}
+                  <span class="badge bg-warning text-dark">⚠️ Low</span>
+                {% else %}
+                  <span class="badge bg-success">✓ Good</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <div class="text-muted" style="font-size: 48px;">📦</div>
+      <h5 class="text-muted mt-3">No Products Yet</h5>
+      <p class="text-muted mb-3">Add products to track stock and investment.</p>
+      <a href="/products" class="btn btn-primary">➕ Add Product</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if products %}
+// Prepare data for charts
+const productNames = [
+  {% for p in products %}
+    '{{ p.name|truncate(20, true) }}',
+  {% endfor %}
+];
+
+const stockLevels = [
+  {% for p in products %}
+    {{ p.stock }},
+  {% endfor %}
+];
+
+const investedAmounts = [
+  {% for p in products %}
+    {{ p.invested }},
+  {% endfor %}
+];
+
+// Stock Level Bar Chart
+const stockChartCanvas = document.getElementById('stockChart');
+if (stockChartCanvas && productNames.length > 0) {
+  new Chart(stockChartCanvas, {
+    type: 'bar',
+    data: {
+      labels: productNames,
+      datasets: [{
+        label: 'Stock Quantity',
+        data: stockLevels,
+        backgroundColor: function(context) {
+          const value = stockLevels[context.dataIndex];
+          if (value <= 5) return '#dc3545'; // Red - Critical
+          if (value <= 10) return '#ffc107'; // Yellow - Low
+          return '#198754'; // Green - Good
+        },
+        borderColor: '#fff',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: productNames.length > 8 ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return 'Stock: ' + context.parsed.x + ' units';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        },
+        y: {
+          ticks: {
+            font: { size: 11 }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Investment Distribution Pie Chart
+const investmentChartCanvas = document.getElementById('investmentChart');
+if (investmentChartCanvas && productNames.length > 0) {
+  // Get top 6 products by investment, rest as "Others"
+  const sortedIndices = investedAmounts.map((val, idx) => ({val, idx}))
+    .sort((a, b) => b.val - a.val)
+    .map(x => x.idx);
+  
+  const topCount = Math.min(6, productNames.length);
+  const topIndices = sortedIndices.slice(0, topCount);
+  const topLabels = topIndices.map(i => productNames[i]);
+  const topValues = topIndices.map(i => investedAmounts[i]);
+  
+  let othersValue = 0;
+  for (let i = topCount; i < sortedIndices.length; i++) {
+    othersValue += investedAmounts[sortedIndices[i]];
+  }
+  
+  const labels = topLabels;
+  if (othersValue > 0) {
+    labels.push('Others');
+    topValues.push(othersValue);
+  }
+
+  const colors = [
+    '#0d6efd', '#6f42c1', '#198754', '#fd7e14',
+    '#20c997', '#dc3545', '#6c757d', '#ffc107'
+  ];
+
+  new Chart(investmentChartCanvas, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: topValues,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: '#fff',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 12,
+            font: { size: 11 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.parsed;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((value / total) * 100).toFixed(1);
+              return '₹' + value.toFixed(0) + ' (' + percentage + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+{% endif %}
+</script>
